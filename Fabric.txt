@@ -1,0 +1,149 @@
+	https://bootstrap.pypa.io/get-pip.py
+or
+apt-get install python-pip -y  ----> Python2
+apt-get install python3-pip  ---> python3
+
+Check pip version
+
+pip --version --> python2
+pip3 --version --> python3
+
+apt-get install fabric
+
+
+from fabric.api import *
+
+def system_info():
+  print("Disk Space")
+  local("df -h")
+  
+  print("###########")  
+  print("RAM Size")
+  local("free -m")
+
+  print("###########")  
+  print("System uptime")
+  local("uptime")
+  
+def remote_exec():
+ print("Get system information")
+ run("hostname")
+ run("uptime")
+ run("df -h")
+ run("free -m")
+
+
+---------------------------------------------------------------------
+Login to web01(root)
+add user: devops
+passwd
+-------------------
+* add user to sudoerlist
+#visudo
+
+devops ALL=(ALL)	NOPASSWD: ALL
+
+edit: # vi /etc/ssh/sshd_config
+PasswordAuthentication yes
+
+restart sshd
+# systemctl restart  sshd
+logout
+---------------------------
+Login to web02(root)
+add user: devops
+passwd:
+-------------------
+* add user to sudoerlist
+#visudo
+
+devops ALL=(ALL)	NOPASSWD: ALL
+
+edit: # vi /etc/ssh/sshd_config
+PasswordAuthentication yes
+gen
+
+restart sshd
+# systemctl restart  sshd
+logout
+-------------------------
+***************************************
+Login to scriptbox
+Copy web01 and web02 IP address
+try to login (need to verify password based login)
+scriptbos:$ ssh devops@192.168.10.3 (web01 IP)
+scriptbos:$ ssh devops@192.168.10.4 (web02 IP)
+-------------------------------------------------
+Now create key to enable passwordless secure login
+scriptbox:$ssh-keygen
+-------------------------------------------------
+Copy ssh-key to other servers(web01 and web02)
+#ssh-copy-id devops@192.168.10.3
+#ssh-copy-id devops@192.168.10.4
+-------------------------------------------------
+Now run fabfile with remote_function
+#fab -l   (check function availability)
+#fab -H 192.168.10.3 -u devops execute_remote (dont give password we have key based login)
+------------------------------------------------
+Try with sudo() in fabfile.py
+difference between run() and sudo()
+sudo() will exculate restriction run() will not
+
+use of sudo():
+def samplesudo():
+ sudo("yum install mariadb-server -y")
+ sudo("systemctl start mariadb")
+ sudo("systemctl enable mariadb")
+--------------------------------------------------
+
+Setup webserver
+
+def web_setup(WEBURL,DIRNAME):
+ print("##################")
+ local("apt install zip unzip -y")
+ print("##################")
+ print("Install dependencies")
+ print("##################")
+ sudo("yum install httpd wget unzip -y") 
+ print("##################")
+ print("Start and enable service")
+ print("##################")
+ sudo("systemctl start httpd")
+ sudo("systemctl enable httpd")
+ print("##################")
+ print("Downloading and pushing website to webservers")
+ print("##################")
+ local(("wget -o website.zip $s") % WEBURL)
+ local("unzip -o website.zip") 
+
+ # put into server
+ with lcd(DIRNAME):    ----> local cd
+     local("zip -r tooplate.zip *")
+     put("tooplate.zip","/var/www/html/", use_sudo=True)  
+     ## put into server, put not have sudo access hence use 3rd parameter)
+
+ # extract into server (use cd into server)
+ with cd("/var/www/html/"):
+    sudo("unzip -o tooplate.zip")
+ 
+ sudo("systemctl restart httpd")
+ print("** Website is done") 
+
+-------------------------------------------------------------------------------------------------------
+$fab -l
+$fab -H 192168.10.3,192.168.10.4 -u devops web_setup:<tooplatelink.zip>, directory name of zip file-
+--------------------------------------------------------------------------------------------------------
+********************************************************************************************************
+Python Virutal Environment
+--------------------------
+#pip install virtualenv
+create virtual environment
+#virtualenv myenv
+goto myenv dir
+#cd myenv
+Activate virtual env
+~/myenv#source bin/activate
+then install some packages
+#pip install jenkinsapi
+if want to deactivate virtual env
+#deactivate
