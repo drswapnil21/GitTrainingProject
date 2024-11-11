@@ -1,6 +1,2 @@
 git Revert 1
 This is line number two
-
-git Revert 2 to github
-
-This is line number 6
