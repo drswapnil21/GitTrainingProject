@@ -1,9 +1,1 @@
-This is my first file in github 
-I am enjoing this github and devops training
-
-
-
-Hello all My fellow students, How are you?
-Go to the class romm and attend the lectures
-
-
+Hello 
